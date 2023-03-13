@@ -1,47 +1,51 @@
 import { Component } from 'react';
-import './BlogPage.css';
 import { posts } from '../../shared/projectData';
 import { Blogitem } from './components/Blogitem';
+import './BlogPage.css';
+import { AddPostForm } from './components/AddPostForm';
 
 export class BlogPage extends Component {
 
   state = {
-    showBlog: true,
+    showAddForm: false,
     blogArr: JSON.parse(localStorage.getItem('blogPosts')) || posts
   }
 
   likePost = (pos) => {
-    const temp = [...this.state.blogArr];
+    const temp = [...this.state.blogArr]
     temp[pos].liked = !temp[pos].liked
 
     this.setState({
       blogArr: temp
-    });
+    })
 
     localStorage.setItem('blogPosts', JSON.stringify(temp))
 
   }
 
-  toggleBlog = () => {
-    this.setState(({ showBlog }) => {
-      return {
-        showBlog: !showBlog
-      }
-    });
-  }
-
   deletePost = (pos) => {
     if (window.confirm(`Удалить ${this.state.blogArr[pos].title}?`)) {
-      const temp = [...this.state.blogArr];
+      const temp = [...this.state.blogArr]
 
-      temp.splice(pos, 1);
+      temp.splice(pos, 1)
 
       this.setState({
         blogArr: temp
-      });
+      })
 
-      localStorage.setItem('blogPosts', JSON.stringify(temp));
+      localStorage.setItem('blogPosts', JSON.stringify(temp))
     }
+  }
+
+  handleAddFormShow = () => {
+    this.setState({
+      showAddForm: true
+    });
+  }
+  handleAddFormHide = () => {
+    this.setState({
+      showAddForm: false
+    });
   }
 
   render() {
@@ -55,25 +59,16 @@ export class BlogPage extends Component {
           likePost={() => this.likePost(pos)}
           deletePost={() => this.deletePost(pos)}
         />
-      )
+      );
     });
     return (
       <>
-        <button onClick={this.toggleBlog}>
-          {
-            this.state.showBlog ? 'Скрыть блог' : 'Показать блог'
-          }
-        </button>
-        {
-          this.state.showBlog ?
-            <>
-              <h1>Simple blog</h1>
-              <div className="posts">
-                {blockPosts}
-              </div>
-            </>
-            : null
-        }
+
+        {this.state.showAddForm ? <AddPostForm handleAddFormHide={this.handleAddFormHide} /> : null}
+
+        <h1>Simple blog</h1>
+        <button className="blackBtn" onClick={this.handleAddFormShow}>Создать новый пост</button>
+        <div className="posts">{blockPosts}</div>
 
       </>
     )
