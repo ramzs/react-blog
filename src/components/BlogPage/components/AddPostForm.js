@@ -21,13 +21,27 @@ export class AddPostForm extends Component {
     })
   }
 
+  createPost = (e) => {
+    e.preventDefault();
+    const post = {
+      id: this.props.blogArr.length + 1,
+      title: this.state.postTitle,
+      description: this.state.postDesc,
+      liked: false
+    }
+    console.log(post);
+
+    this.props.addNewBlogPost(post);
+    this.props.handleAddFormHide();
+  }
+
   render() {
 
     const handleAddFormHide = this.props.handleAddFormHide
 
     return (
       <>
-        <form action="" className="addPostForm">
+        <form className="addPostForm" onSubmit={this.createPost}>
           <button className='hideBtn' onClick={handleAddFormHide}>
             <CloseIcon />
           </button>
@@ -40,6 +54,7 @@ export class AddPostForm extends Component {
               placeholder='Заголовок поста'
               value={this.state.postTitle}
               onChange={this.handlePostTitleChange}
+              required
             />
           </div>
           <div>
@@ -49,9 +64,15 @@ export class AddPostForm extends Component {
               placeholder='Описание поста'
               value={this.state.postDescription}
               onChange={this.handlePostDescChange}
+              required
             />
           </div>
-          <button type="submit" className="blackBtn" onClick={handleAddFormHide}>Добавить пост</button>
+          <button
+            type="submit"
+            className="blackBtn"
+          >
+            Добавить пост
+          </button>
         </form>
         <div className="overlay" onClick={handleAddFormHide}></div>
       </>
