@@ -1,8 +1,9 @@
 import { Component } from 'react';
-import { posts } from '../../shared/projectData';
-import { Blogitem } from './components/Blogitem';
+// import { posts } from '../../shared/projectData';
+import { BlogItem } from './components/BlogItem';
 import { AddPostForm } from './components/AddPostForm';
 import axios from 'axios';
+import CircularProgress from '@mui/material/CircularProgress';
 import './BlogPage.css';
 
 // https://636d00fc91576e19e31c64d8.mockapi.io/posts
@@ -17,9 +18,6 @@ export class BlogPage extends Component {
   }
 
   fetchPosts = () => {
-    this.setState({
-      isPending: true
-    })
     axios.get('https://636d00fc91576e19e31c64d8.mockapi.io/posts')
       .then((response) => {
         this.setState({
@@ -31,24 +29,26 @@ export class BlogPage extends Component {
       });
   }
 
-  likePost = (pos) => {
+  likePost = (blogPost) => {
 
-    this.setState((state) => {
-      const temp = [...this.state.blogArr]
-      temp[pos].liked = !temp[pos].liked
+    const temp = { ...blogPost };
+    temp.liked = !temp.liked;
 
-      localStorage.setItem('blogPosts', JSON.stringify(temp));
-
-      return {
-        blogArr: temp
-      }
-    });
-
+    axios.put(`https://636d00fc91576e19e31c64d8.mockapi.io/posts/${blogPost.id}`, temp)
+      .then((response) => {
+        console.log('Пост изменен =>', response.data);
+        this.fetchPosts();
+      }).catch((err) => {
+        console.log(err);
+      });
   }
 
   deletePost = (blogPost) => {
     if (window.confirm(`Удалить ${blogPost.title}?`)) {
 
+      this.setState({
+        isPending: true
+      })
       axios.delete(`https://636d00fc91576e19e31c64d8.mockapi.io/posts/${blogPost.id}`)
         .then((response) => {
           this.fetchPosts();
@@ -57,6 +57,18 @@ export class BlogPage extends Component {
         });
 
     }
+  }
+
+  addNewBlogPost = (blogPost) => {
+    this.setState({
+      isPending: true
+    })
+    axios.post('https://636d00fc91576e19e31c64d8.mockapi.io/posts/', blogPost)
+      .then((response) => {
+        this.fetchPosts()
+      }).catch((err) => {
+        console.log(err)
+      });
   }
 
   handleAddFormShow = () => {
@@ -77,20 +89,6 @@ export class BlogPage extends Component {
     }
   }
 
-  addNewBlogPost = (blogPost) => {
-
-    this.setState((state) => {
-      const posts = [...state.blogArr];
-      posts.push(blogPost);
-
-      localStorage.setItem('blogPosts', JSON.stringify(posts));
-
-      return {
-        blogArr: posts
-      }
-    });
-  }
-
   componentDidMount() {
     this.fetchPosts();
     window.addEventListener('keyup', this.handleEscape);
@@ -101,21 +99,22 @@ export class BlogPage extends Component {
   }
 
   render() {
-    const blockPosts = this.state.blogArr.map((item, pos) => {
+    const blockPosts = this.state.blogArr.map((item) => {
       return (
-        <Blogitem
+        <BlogItem
           key={item.id}
           title={item.title}
           description={item.description}
           liked={item.liked}
-          likePost={() => this.likePost(pos)}
+          likePost={() => this.likePost(item)}
           deletePost={() => this.deletePost(item)}
         />
       );
     });
 
-    if (this.state.blogArr.length === 0)
-      return <h1>Загружаю данные...</h1>
+    if (this.state.blogArr.length === 0) return <h1>Загружаю данные...</h1>
+
+    const postsOpacity = this.state.isPending ? 0.5 : 1;
 
     return (
       <div className="blogPage">
@@ -132,10 +131,10 @@ export class BlogPage extends Component {
         <div className="addNewPost">
           <button className="blackBtn" onClick={this.handleAddFormShow}>Создать новый пост</button>
         </div>
-        {
-          this.state.isPending && <h2>Подождите...</h2>
-        }
-        <div className="posts">{blockPosts}</div>
+        <div className="posts" style={{ opacity: postsOpacity }}>
+          {blockPosts}
+        </div>
+        {this.state.isPending && <CircularProgress className="preloader" />}
 
       </div>
     )

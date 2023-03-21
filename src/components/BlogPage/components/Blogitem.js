@@ -2,7 +2,7 @@ import "./BlogItem.css";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
-export const Blogitem = ({
+export const BlogItem = ({
   title,
   description,
   liked,
