@@ -5,12 +5,30 @@ import { AddPostForm } from './components/AddPostForm';
 import axios from 'axios';
 import './BlogPage.css';
 
+// https://636d00fc91576e19e31c64d8.mockapi.io/posts
+
 export class BlogPage extends Component {
 
   state = {
     showAddForm: false,
-    blogArr: []
+    blogArr: [],
+    isPending: false
     // blogArr: JSON.parse(localStorage.getItem('blogPosts')) || posts
+  }
+
+  fetchPosts = () => {
+    this.setState({
+      isPending: true
+    })
+    axios.get('https://636d00fc91576e19e31c64d8.mockapi.io/posts')
+      .then((response) => {
+        this.setState({
+          blogArr: response.data,
+          isPending: false
+        })
+      }).catch((err) => {
+        console.log(err);
+      });
   }
 
   likePost = (pos) => {
@@ -28,19 +46,15 @@ export class BlogPage extends Component {
 
   }
 
-  deletePost = (pos) => {
-    if (window.confirm(`Удалить ${this.state.blogArr[pos].title}?`)) {
+  deletePost = (blogPost) => {
+    if (window.confirm(`Удалить ${blogPost.title}?`)) {
 
-      this.setState((state) => {
-        const temp = [...this.state.blogArr];
-        temp.splice(pos, 1);
-
-        localStorage.setItem('blogPosts', JSON.stringify(temp));
-
-        return {
-          blogArr: temp
-        }
-      });
+      axios.delete(`https://636d00fc91576e19e31c64d8.mockapi.io/posts/${blogPost.id}`)
+        .then((response) => {
+          this.fetchPosts();
+        }).catch((err) => {
+          console.log(err);
+        });
 
     }
   }
@@ -78,14 +92,7 @@ export class BlogPage extends Component {
   }
 
   componentDidMount() {
-    axios.get('https://636d00fc91576e19e31c64d8.mockapi.io/posts')
-      .then((response) => {
-        this.setState({
-          blogArr: response.data
-        })
-      }).catch((err) => {
-        console.log(err);
-      });
+    this.fetchPosts();
     window.addEventListener('keyup', this.handleEscape);
   }
 
@@ -102,7 +109,7 @@ export class BlogPage extends Component {
           description={item.description}
           liked={item.liked}
           likePost={() => this.likePost(pos)}
-          deletePost={() => this.deletePost(pos)}
+          deletePost={() => this.deletePost(item)}
         />
       );
     });
@@ -125,6 +132,9 @@ export class BlogPage extends Component {
         <div className="addNewPost">
           <button className="blackBtn" onClick={this.handleAddFormShow}>Создать новый пост</button>
         </div>
+        {
+          this.state.isPending && <h2>Подождите...</h2>
+        }
         <div className="posts">{blockPosts}</div>
 
       </div>
