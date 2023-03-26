@@ -5,6 +5,7 @@ import { AddPostForm } from './components/AddPostForm';
 import axios from 'axios';
 import CircularProgress from '@mui/material/CircularProgress';
 import './BlogPage.css';
+import { EditPostForm } from './components/EditPostForm';
 
 // https://636d00fc91576e19e31c64d8.mockapi.io/posts
 
@@ -12,8 +13,10 @@ export class BlogPage extends Component {
 
   state = {
     showAddForm: false,
+    showEditForm: false,
     blogArr: [],
-    isPending: false
+    isPending: false,
+    selectedPost: {}
     // blogArr: JSON.parse(localStorage.getItem('blogPosts')) || posts
   }
 
@@ -62,8 +65,21 @@ export class BlogPage extends Component {
   addNewBlogPost = (blogPost) => {
     this.setState({
       isPending: true
-    })
+    });
     axios.post('https://636d00fc91576e19e31c64d8.mockapi.io/posts/', blogPost)
+      .then((response) => {
+        this.fetchPosts()
+      }).catch((err) => {
+        console.log(err)
+      });
+  }
+
+  editBlogPost = (updatedBlogPost) => {
+    this.setState({
+      isPending: true
+    });
+
+    axios.put(`https://636d00fc91576e19e31c64d8.mockapi.io/posts/${updatedBlogPost.id}`, updatedBlogPost)
       .then((response) => {
         this.fetchPosts()
       }).catch((err) => {
@@ -77,25 +93,32 @@ export class BlogPage extends Component {
     });
   }
 
+  handleEditFormShow = () => {
+    this.setState({
+      showEditForm: true
+    });
+  }
+
   handleAddFormHide = () => {
     this.setState({
       showAddForm: false
     });
   }
 
-  handleEscape = (e) => {
-    if (e.key === 'Escape' && this.state.showAddForm) {
-      this.handleAddFormHide();
-    }
+  handleEditFormHide = () => {
+    this.setState({
+      showEditForm: false
+    });
+  }
+
+  handleSelectPost = (blogPost) => {
+    this.setState({
+      selectedPost: blogPost
+    })
   }
 
   componentDidMount() {
     this.fetchPosts();
-    window.addEventListener('keyup', this.handleEscape);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('keyup', this.handleEscape);
   }
 
   render() {
@@ -108,6 +131,8 @@ export class BlogPage extends Component {
           liked={item.liked}
           likePost={() => this.likePost(item)}
           deletePost={() => this.deletePost(item)}
+          handleEditFormShow={this.handleEditFormShow}
+          handleSelectPost={() => this.handleSelectPost(item)}
         />
       );
     });
@@ -126,6 +151,16 @@ export class BlogPage extends Component {
             handleAddFormHide={this.handleAddFormHide}
           />
         )}
+
+        {
+          this.state.showEditForm && (
+            <EditPostForm
+              handleEditFormHide={this.handleEditFormHide}
+              selectedPost={this.state.selectedPost}
+              editBlogPost={this.editBlogPost}
+            />
+          )
+        }
 
         <h1>Блог</h1>
         <div className="addNewPost">
