@@ -1,13 +1,15 @@
 import { Component } from 'react';
-// import { posts } from '../../shared/projectData';
+import { postsUrl } from '../../shared/projectData';
 import { BlogItem } from './components/BlogItem';
 import { AddPostForm } from './components/AddPostForm';
 import axios from 'axios';
 import CircularProgress from '@mui/material/CircularProgress';
-import './BlogPage.css';
+import styles from './BlogPage.module.css';
 import { EditPostForm } from './components/EditPostForm';
 
 // https://636d00fc91576e19e31c64d8.mockapi.io/posts
+
+let source;
 
 export class BlogPage extends Component {
 
@@ -20,8 +22,10 @@ export class BlogPage extends Component {
     // blogArr: JSON.parse(localStorage.getItem('blogPosts')) || posts
   }
 
+
   fetchPosts = () => {
-    axios.get('https://636d00fc91576e19e31c64d8.mockapi.io/posts')
+    source = axios.CancelToken.source();
+    axios.get(postsUrl, { cancelToken: source.token })
       .then((response) => {
         this.setState({
           blogArr: response.data,
@@ -32,12 +36,22 @@ export class BlogPage extends Component {
       });
   }
 
+  componentDidMount() {
+    this.fetchPosts();
+  }
+
+  componentWillUnmount() {
+    if (source) {
+      source.cancel('Axios get canceled');
+    }
+  }
+
   likePost = (blogPost) => {
 
     const temp = { ...blogPost };
     temp.liked = !temp.liked;
 
-    axios.put(`https://636d00fc91576e19e31c64d8.mockapi.io/posts/${blogPost.id}`, temp)
+    axios.put(`${postsUrl}${blogPost.id}`, temp)
       .then((response) => {
         console.log('Пост изменен =>', response.data);
         this.fetchPosts();
@@ -52,7 +66,7 @@ export class BlogPage extends Component {
       this.setState({
         isPending: true
       })
-      axios.delete(`https://636d00fc91576e19e31c64d8.mockapi.io/posts/${blogPost.id}`)
+      axios.delete(`${postsUrl}${blogPost.id}`)
         .then((response) => {
           this.fetchPosts();
         }).catch((err) => {
@@ -66,7 +80,7 @@ export class BlogPage extends Component {
     this.setState({
       isPending: true
     });
-    axios.post('https://636d00fc91576e19e31c64d8.mockapi.io/posts/', blogPost)
+    axios.post(postsUrl, blogPost)
       .then((response) => {
         this.fetchPosts()
       }).catch((err) => {
@@ -79,7 +93,7 @@ export class BlogPage extends Component {
       isPending: true
     });
 
-    axios.put(`https://636d00fc91576e19e31c64d8.mockapi.io/posts/${updatedBlogPost.id}`, updatedBlogPost)
+    axios.put(`${postsUrl}${updatedBlogPost.id}`, updatedBlogPost)
       .then((response) => {
         this.fetchPosts()
       }).catch((err) => {
@@ -117,10 +131,6 @@ export class BlogPage extends Component {
     })
   }
 
-  componentDidMount() {
-    this.fetchPosts();
-  }
-
   render() {
     const blockPosts = this.state.blogArr.map((item) => {
       return (
@@ -142,7 +152,7 @@ export class BlogPage extends Component {
     const postsOpacity = this.state.isPending ? 0.5 : 1;
 
     return (
-      <div className="blogPage">
+      <div className={styles.blogPage}>
 
         {this.state.showAddForm && (
           <AddPostForm
@@ -163,13 +173,13 @@ export class BlogPage extends Component {
         }
 
         <h1>Блог</h1>
-        <div className="addNewPost">
+        <div className={styles.addNewPost}>
           <button className="blackBtn" onClick={this.handleAddFormShow}>Создать новый пост</button>
         </div>
-        <div className="posts" style={{ opacity: postsOpacity }}>
+        <div className={styles.posts} style={{ opacity: postsOpacity }}>
           {blockPosts}
         </div>
-        {this.state.isPending && <CircularProgress className="preloader" />}
+        {this.state.isPending && <CircularProgress className={styles.preloader} />}
 
       </div>
     )

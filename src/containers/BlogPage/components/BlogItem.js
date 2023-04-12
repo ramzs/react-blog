@@ -1,4 +1,4 @@
-import "./BlogItem.css";
+import styles from "./BlogItem.module.css";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import EditIcon from '@mui/icons-material/Edit';
@@ -21,8 +21,8 @@ export const BlogItem = ({
   const heartFill = liked ? 'crimson' : 'black';
 
   return (
-    <div className="post">
-      <div className="postContent">
+    <div className={styles.post}>
+      <div className={styles.postContent}>
         <h2>{title}</h2>
         <p> {description}</p>
         <div>
@@ -31,11 +31,11 @@ export const BlogItem = ({
           </button>
         </div>
       </div>
-      <div className="postControl">
-        <button className="editBtn" onClick={showEditForm}>
+      <div className={styles.postControl}>
+        <button className={styles.editBtn} onClick={showEditForm}>
           <EditIcon />
         </button>
-        <button className="deleteBtn" onClick={deletePost}>
+        <button className={styles.deleteBtn} onClick={deletePost}>
           <DeleteForeverIcon />
         </button>
       </div>

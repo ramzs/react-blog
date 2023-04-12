@@ -1,19 +1,26 @@
 import './App.css';
 import { Header } from './components/Header/Header';
-import { BlogPage } from './components/BlogPage/BlogPage';
+import { BlogPage } from './containers/BlogPage/BlogPage';
 import { Footer } from './components/Footer/Footer';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { LoginPage } from './containers/LoginPage/LoginPage';
 
 export function App() {
   return (
-    <div className="App">
+    <Router>
+      <div className="App">
 
-      <Header />
+        <Header />
 
-      <main>
-        <BlogPage />
-      </main>
+        <main>
+          <Routes>
+            <Route path="/" element={<BlogPage />} />
+            <Route path="/login" element={<LoginPage />} />
+          </Routes>
+        </main>
 
-      <Footer year={new Date().getFullYear()} />
-    </div>
+        <Footer year={new Date().getFullYear()} />
+      </div>
+    </Router>
   );
 }

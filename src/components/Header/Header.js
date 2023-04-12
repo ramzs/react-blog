@@ -1,12 +1,22 @@
-import './Header.css';
+import { NavLink } from 'react-router-dom';
+import styles from './Header.module.css';
 
 export const Header = () => {
   return (
-    <header>
+    <header className={styles.mainHeader}>
       <nav>
-        <a href="#first" className="active">Home</a>
-        <a href="#about">About</a>
-        <a href="#contact">Contact</a>
+        <NavLink
+          className={({ isActive }) => (isActive ? `${styles.active}` : '')}
+          to="/"
+        >
+          Home
+        </NavLink>
+        <NavLink
+          className={({ isActive }) => (isActive ? `${styles.active}` : '')}
+          to="/login"
+        >
+          Login
+        </NavLink>
       </nav>
     </header>
   )
