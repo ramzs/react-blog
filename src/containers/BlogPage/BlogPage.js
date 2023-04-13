@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { postsUrl } from '../../shared/projectData';
 import { BlogItem } from './components/BlogItem';
 import { AddPostForm } from './components/AddPostForm';
@@ -11,64 +11,59 @@ import { EditPostForm } from './components/EditPostForm';
 
 let source;
 
-export class BlogPage extends Component {
+export const BlogPage = (props) => {
 
-  state = {
-    showAddForm: false,
-    showEditForm: false,
-    blogArr: [],
-    isPending: false,
-    selectedPost: {}
-    // blogArr: JSON.parse(localStorage.getItem('blogPosts')) || posts
-  }
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [blogArr, setBlogArr] = useState([]);
+  const [isPending, setIsPending] = useState(false);
+  const [selectedPost, setSelectedPost] = useState({});
 
 
-  fetchPosts = () => {
+  const fetchPosts = () => {
     source = axios.CancelToken.source();
     axios.get(postsUrl, { cancelToken: source.token })
       .then((response) => {
-        this.setState({
-          blogArr: response.data,
-          isPending: false
-        })
+        setBlogArr(response.data);
+        setIsPending(false);
       }).catch((err) => {
         console.log(err);
       });
   }
 
-  componentDidMount() {
-    this.fetchPosts();
-  }
+  useEffect(() => {
+    fetchPosts();
+    return () => {
+      if (source) {
+        source.cancel('Axios get canceled');
+      }
+    };
+  }, []);
 
-  componentWillUnmount() {
-    if (source) {
-      source.cancel('Axios get canceled');
-    }
-  }
-
-  likePost = (blogPost) => {
+  const likePost = (blogPost) => {
 
     const temp = { ...blogPost };
     temp.liked = !temp.liked;
 
-    axios.put(`${postsUrl}${blogPost.id}`, temp)
+    axios
+      .put(`${postsUrl}${blogPost.id}`, temp)
       .then((response) => {
         console.log('Пост изменен =>', response.data);
-        this.fetchPosts();
+        fetchPosts();
       }).catch((err) => {
         console.log(err);
       });
   }
 
-  deletePost = (blogPost) => {
+  const deletePost = (blogPost) => {
     if (window.confirm(`Удалить ${blogPost.title}?`)) {
 
-      this.setState({
-        isPending: true
-      })
-      axios.delete(`${postsUrl}${blogPost.id}`)
+      setIsPending(true);
+
+      axios
+        .delete(`${postsUrl}${blogPost.id}`)
         .then((response) => {
-          this.fetchPosts();
+          fetchPosts();
         }).catch((err) => {
           console.log(err);
         });
@@ -76,112 +71,101 @@ export class BlogPage extends Component {
     }
   }
 
-  addNewBlogPost = (blogPost) => {
-    this.setState({
-      isPending: true
-    });
-    axios.post(postsUrl, blogPost)
+  const addNewBlogPost = (blogPost) => {
+
+    setIsPending(false);
+
+    axios
+      .post(postsUrl, blogPost)
       .then((response) => {
-        this.fetchPosts()
+        fetchPosts()
       }).catch((err) => {
         console.log(err)
       });
   }
 
-  editBlogPost = (updatedBlogPost) => {
-    this.setState({
-      isPending: true
-    });
+  const editBlogPost = (updatedBlogPost) => {
 
-    axios.put(`${postsUrl}${updatedBlogPost.id}`, updatedBlogPost)
+    setIsPending(false);
+
+    axios
+      .put(`${postsUrl}${updatedBlogPost.id}`, updatedBlogPost)
       .then((response) => {
-        this.fetchPosts()
+        fetchPosts()
       }).catch((err) => {
         console.log(err)
       });
   }
 
-  handleAddFormShow = () => {
-    this.setState({
-      showAddForm: true
-    });
+  const handleAddFormShow = () => {
+    setShowAddForm(true);
   }
 
-  handleEditFormShow = () => {
-    this.setState({
-      showEditForm: true
-    });
+  const handleEditFormShow = () => {
+    setShowEditForm(true);
   }
 
-  handleAddFormHide = () => {
-    this.setState({
-      showAddForm: false
-    });
+  const handleAddFormHide = () => {
+    setShowAddForm(false);
   }
 
-  handleEditFormHide = () => {
-    this.setState({
-      showEditForm: false
-    });
+  const handleEditFormHide = () => {
+    setShowEditForm(false);
   }
 
-  handleSelectPost = (blogPost) => {
-    this.setState({
-      selectedPost: blogPost
-    })
+  const handleSelectPost = (blogPost) => {
+    setSelectedPost(blogPost);
   }
 
-  render() {
-    const blockPosts = this.state.blogArr.map((item) => {
-      return (
-        <BlogItem
-          key={item.id}
-          title={item.title}
-          description={item.description}
-          liked={item.liked}
-          likePost={() => this.likePost(item)}
-          deletePost={() => this.deletePost(item)}
-          handleEditFormShow={this.handleEditFormShow}
-          handleSelectPost={() => this.handleSelectPost(item)}
-        />
-      );
-    });
-
-    if (this.state.blogArr.length === 0) return <h1>Загружаю данные...</h1>
-
-    const postsOpacity = this.state.isPending ? 0.5 : 1;
-
+  const blockPosts = blogArr.map((item) => {
     return (
-      <div className={styles.blogPage}>
+      <BlogItem
+        key={item.id}
+        title={item.title}
+        description={item.description}
+        liked={item.liked}
+        likePost={() => likePost(item)}
+        deletePost={() => deletePost(item)}
+        handleEditFormShow={handleEditFormShow}
+        handleSelectPost={() => handleSelectPost(item)}
+      />
+    );
+  });
 
-        {this.state.showAddForm && (
-          <AddPostForm
-            addNewBlogPost={this.addNewBlogPost}
-            blogArr={this.state.blogArr}
-            handleAddFormHide={this.handleAddFormHide}
+  if (blogArr.length === 0) return <h1>Загружаю данные...</h1>
+
+  const postsOpacity = isPending ? 0.5 : 1;
+
+  return (
+    <div className={styles.blogPage}>
+
+      {showAddForm && (
+        <AddPostForm
+          blogArr={blogArr}
+          addNewBlogPost={addNewBlogPost}
+          handleAddFormHide={handleAddFormHide}
+        />
+      )}
+
+      {
+        showEditForm && (
+          <EditPostForm
+            handleEditFormHide={handleEditFormHide}
+            selectedPost={selectedPost}
+            editBlogPost={editBlogPost}
           />
-        )}
+        )
+      }
 
-        {
-          this.state.showEditForm && (
-            <EditPostForm
-              handleEditFormHide={this.handleEditFormHide}
-              selectedPost={this.state.selectedPost}
-              editBlogPost={this.editBlogPost}
-            />
-          )
-        }
-
-        <h1>Блог</h1>
-        <div className={styles.addNewPost}>
-          <button className="blackBtn" onClick={this.handleAddFormShow}>Создать новый пост</button>
-        </div>
-        <div className={styles.posts} style={{ opacity: postsOpacity }}>
-          {blockPosts}
-        </div>
-        {this.state.isPending && <CircularProgress className={styles.preloader} />}
-
+      <h1>Блог</h1>
+      <div className={styles.addNewPost}>
+        <button className="blackBtn" onClick={handleAddFormShow}>Создать новый пост</button>
       </div>
-    )
-  }
+      <div className={styles.posts} style={{ opacity: postsOpacity }}>
+        {blockPosts}
+      </div>
+      {isPending && <CircularProgress className={styles.preloader} />}
+
+    </div>
+  )
 }

@@ -1,96 +1,82 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './EditPostForm.module.css';
 import CloseIcon from '@mui/icons-material/Close';
 
-export class EditPostForm extends Component {
+export const EditPostForm = (props) => {
 
-  state = {
-    postTitle: this.props.selectedPost.title,
-    postDesc: this.props.selectedPost.description
+  const [postTitle, setPostTitle] = useState(props.selectedPost.title);
+  const [postDesc, setPostDesc] = useState(props.selectedPost.description);
+
+  const handlePostTitleChange = (e) => {
+    setPostTitle(e.target.value);
   }
 
-  handlePostTitleChange = (e) => {
-    this.setState({
-      postTitle: e.target.value
-    })
+  const handlePostDescChange = (e) => {
+    setPostDesc(e.target.value);
   }
 
-  handlePostDescChange = (e) => {
-    this.setState({
-      postDesc: e.target.value
-    })
-  }
-
-  savePost = (e) => {
+  const savePost = (e) => {
     e.preventDefault();
     const post = {
-      id: this.props.selectedPost.id,
-      title: this.state.postTitle,
-      description: this.state.postDesc,
-      liked: this.props.selectedPost.liked
+      id: props.selectedPost.id,
+      title: postTitle,
+      description: postDesc,
+      liked: props.selectedPost.liked
     }
-    console.log(post);
 
-    this.props.editBlogPost(post);
-    this.props.handleEditFormHide();
+    props.editBlogPost(post);
+    props.handleEditFormHide();
   }
 
-  handleEscape = (e) => {
-    if (e.key === 'Escape') {
-      this.props.handleEditFormHide();
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        props.handleEditFormHide();
+      }
     }
-  }
+    window.addEventListener('keyup', handleEscape);
+    return () => window.removeEventListener('keyup', handleEscape);
+  }, [props]);
 
-  componentDidMount() {
-    window.addEventListener('keyup', this.handleEscape);
-  }
+  const handleEditFormHide = props.handleEditFormHide
 
-  componentWillUnmount() {
-    window.removeEventListener('keyup', this.handleEscape);
-  }
-
-  render() {
-
-    const handleEditFormHide = this.props.handleEditFormHide
-
-    return (
-      <>
-        <form className={styles.editPostForm} onSubmit={this.savePost}>
-          <button className={styles.hideBtn} onClick={handleEditFormHide}>
-            <CloseIcon />
-          </button>
-          <h2>Редактирование поста</h2>
-          <div>
-            <input
-              className={styles.editFormInput}
-              type="text"
-              name="postTitle"
-              placeholder='Заголовок поста'
-              value={this.state.postTitle}
-              onChange={this.handlePostTitleChange}
-              required
-            />
-          </div >
-          <div>
-            <textarea
-              className={styles.editFormInput}
-              name="postDescription"
-              placeholder='Описание поста'
-              value={this.state.postDesc}
-              onChange={this.handlePostDescChange}
-              rows={8}
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className={styles.blackBtn}
-          >
-            Сохранить
-          </button>
-        </form >
-        <div className={styles.overlay} onClick={handleEditFormHide}></div>
-      </>
-    )
-  }
+  return (
+    <>
+      <form className={styles.editPostForm} onSubmit={savePost}>
+        <button className={styles.hideBtn} onClick={handleEditFormHide}>
+          <CloseIcon />
+        </button>
+        <h2>Редактирование поста</h2>
+        <div>
+          <input
+            className={styles.editFormInput}
+            type="text"
+            name="postTitle"
+            placeholder='Заголовок поста'
+            value={postTitle}
+            onChange={handlePostTitleChange}
+            required
+          />
+        </div >
+        <div>
+          <textarea
+            className={styles.editFormInput}
+            name="postDescription"
+            placeholder='Описание поста'
+            value={postDesc}
+            onChange={handlePostDescChange}
+            rows={8}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className={styles.blackBtn}
+        >
+          Сохранить
+        </button>
+      </form >
+      <div className={styles.overlay} onClick={handleEditFormHide}></div>
+    </>
+  )
 }
