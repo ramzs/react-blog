@@ -1,0 +1,14 @@
+.notfound .ant-result-title {
+  font-size: 100px;
+}
+
+.notfoundLink {
+  display: inline-block;
+  font-size: 18px;
+  color: green;
+  text-decoration: underline;
+}
+
+.notfoundLink:hover {
+  text-decoration: none;
+}

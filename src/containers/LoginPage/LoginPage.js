@@ -4,7 +4,8 @@ import styles from './LoginPage.module.css';
 
 export const LoginPage = ({
   setIsLoggedIn,
-  setUserName
+  setUserName,
+  setIsAdmin
 }) => {
 
   const navigate = useNavigate();
@@ -21,6 +22,14 @@ export const LoginPage = ({
 
   const handleLogIn = (e) => {
     e.preventDefault();
+
+    if (login === 'admin') {
+      if (password === '123456') setIsAdmin(true);
+      else {
+        alert('Введите правильный логин или пароль');
+        return false;
+      }
+    }
 
     localStorage.setItem('isLoggedIn', true);
     localStorage.setItem('userName', login);

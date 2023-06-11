@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { postsUrl } from '../../shared/projectData';
 import { BlogItem } from './components/BlogItem';
 import { AddPostForm } from './components/AddPostForm';
@@ -6,12 +6,13 @@ import axios from 'axios';
 import CircularProgress from '@mui/material/CircularProgress';
 import styles from './BlogPage.module.css';
 import { EditPostForm } from './components/EditPostForm';
+import { Link } from 'react-router-dom';
 
 // https://636d00fc91576e19e31c64d8.mockapi.io/posts
 
 let source;
 
-export const BlogPage = (props) => {
+export const BlogPage = ({ isAdmin }) => {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -119,16 +120,19 @@ export const BlogPage = (props) => {
 
   const blockPosts = blogArr.map((item) => {
     return (
-      <BlogItem
-        key={item.id}
-        title={item.title}
-        description={item.description}
-        liked={item.liked}
-        likePost={() => likePost(item)}
-        deletePost={() => deletePost(item)}
-        handleEditFormShow={handleEditFormShow}
-        handleSelectPost={() => handleSelectPost(item)}
-      />
+      <Fragment key={item.id}>
+        <BlogItem
+          title={item.title}
+          description={item.description}
+          liked={item.liked}
+          likePost={() => likePost(item)}
+          deletePost={() => deletePost(item)}
+          handleEditFormShow={handleEditFormShow}
+          handleSelectPost={() => handleSelectPost(item)}
+          isAdmin={isAdmin}
+        />
+        <Link to={`/blog/${item.id}`}>Подробнее</Link>
+      </Fragment>
     );
   });
 
@@ -158,9 +162,12 @@ export const BlogPage = (props) => {
       }
 
       <h1>Блог</h1>
-      <div className={styles.addNewPost}>
-        <button className="blackBtn" onClick={handleAddFormShow}>Создать новый пост</button>
-      </div>
+      {isAdmin && (
+        <div className={styles.addNewPost}>
+          <button className="blackBtn" onClick={handleAddFormShow}>Создать новый пост</button>
+        </div>
+      )}
+
       <div className={styles.posts} style={{ opacity: postsOpacity }}>
         {blockPosts}
       </div>
